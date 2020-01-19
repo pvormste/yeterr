@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -17,14 +18,14 @@ var (
 	errWriteError = errors.New("this simulates a write error")
 
 	elementRead = CollectionElement{
-		Group: groupReadError,
-		Note:  "on read",
-		Error: errReadError,
+		Group:    groupReadError,
+		Metadata: ElementMetadata{"filename": "text.txt"},
+		Error:    errReadError,
 	}
 	elementWrite = CollectionElement{
-		Group: groupWriteError,
-		Note:  "on write",
-		Error: errWriteError,
+		Group:    groupWriteError,
+		Metadata: ElementMetadata{"filename": "text.txt"},
+		Error:    errWriteError,
 	}
 )
 
@@ -66,5 +67,21 @@ func TestSimpleCollection_Count(t *testing.T) {
 		}
 
 		assert.Equal(t, 2, collection.Count())
+	})
+}
+
+func TestSimpleCollection_AddError(t *testing.T) {
+	collection := NewSimpleCollection()
+
+	t.Run("should successfully add an element to collection", func(t *testing.T) {
+		require.True(t, collection.IsEmpty())
+
+		collection.AddError(errReadError, ElementMetadata{"filename": "text.txt"}, ElementGroupUngrouped)
+		assert.Equal(t, 1, collection.Count())
+
+		addedElement := collection.(*SimpleCollection).elements[0]
+		assert.Equal(t, errReadError, addedElement.Error)
+		assert.Equal(t, ElementMetadata{"filename": "text.txt"}, addedElement.Metadata)
+		assert.Equal(t, ElementGroupUngrouped, addedElement.Group)
 	})
 }

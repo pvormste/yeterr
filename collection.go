@@ -1,30 +1,14 @@
 package yeterr
 
-type ElementGroup string
-
-func (et ElementGroup) String() string {
-	return string(et)
-}
-
-const (
-	ElementGroupUngrouped ElementGroup = "ungrouped"
-)
-
-type CollectionElement struct {
-	Group ElementGroup
-	Note  string
-	Error error
-}
-
 type Collection interface {
 	IsEmpty() bool
 	HasError() bool
 	HasFatalError() bool
 	Count() int
-	AddError(group ElementGroup, note string, err error)
-	AddFatalError(group ElementGroup, note string, err error)
-	AddUngroupedError(note string, err error)
-	AddUngroupedFatalError(note string, err error)
+	AddError(err error, metadata ElementMetadata, group ElementGroup)
+	AddFatalError(err error, metadata ElementMetadata, group ElementGroup)
+	AddUngroupedError(err error, metadata ElementMetadata)
+	AddUngroupedFatalError(err error, metadata ElementMetadata)
 	AllErrors() []CollectionElement
 	LastError() CollectionElement
 	AllErrorsByGroup(group ElementGroup) []CollectionElement
@@ -60,19 +44,25 @@ func (s *SimpleCollection) Count() int {
 	return len(s.elements)
 }
 
-func (s *SimpleCollection) AddError(group ElementGroup, note string, err error) {
+func (s *SimpleCollection) AddError(err error, metadata ElementMetadata, group ElementGroup) {
+	element := CollectionElement{
+		Error:    err,
+		Metadata: metadata,
+		Group:    group,
+	}
+
+	s.elements = append(s.elements, element)
+}
+
+func (s *SimpleCollection) AddFatalError(err error, metadata ElementMetadata, group ElementGroup) {
 	panic("implement me")
 }
 
-func (s *SimpleCollection) AddFatalError(group ElementGroup, note string, err error) {
+func (s *SimpleCollection) AddUngroupedError(err error, metadata ElementMetadata) {
 	panic("implement me")
 }
 
-func (s *SimpleCollection) AddUngroupedError(note string, err error) {
-	panic("implement me")
-}
-
-func (s *SimpleCollection) AddUngroupedFatalError(note string, err error) {
+func (s *SimpleCollection) AddUngroupedFatalError(err error, metadata ElementMetadata) {
 	panic("implement me")
 }
 
