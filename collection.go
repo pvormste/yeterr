@@ -23,8 +23,8 @@ type Collection interface {
 	Count() int
 	AddError(group ElementGroup, note string, err error)
 	AddFatalError(group ElementGroup, note string, err error)
-	AddUngroupedError(group ElementGroup, note string, err error)
-	AddUngroupedFatalError(group ElementGroup, note string, err error)
+	AddUngroupedError(note string, err error)
+	AddUngroupedFatalError(note string, err error)
 	AllErrors() []CollectionElement
 	LastError() CollectionElement
 	AllErrorsByGroup(group ElementGroup) []CollectionElement
@@ -49,19 +49,11 @@ func (s *SimpleCollection) IsEmpty() bool {
 }
 
 func (s *SimpleCollection) HasError() bool {
-	if len(s.elements) > 0 {
-		return true
-	}
-
-	return false
+	return len(s.elements) > 0
 }
 
 func (s *SimpleCollection) HasFatalError() bool {
-	if s.fatalError != nil {
-		return true
-	}
-
-	return false
+	return s.fatalError != nil
 }
 
 func (s *SimpleCollection) Count() int {
@@ -76,11 +68,11 @@ func (s *SimpleCollection) AddFatalError(group ElementGroup, note string, err er
 	panic("implement me")
 }
 
-func (s *SimpleCollection) AddUngroupedError(group ElementGroup, note string, err error) {
+func (s *SimpleCollection) AddUngroupedError(note string, err error) {
 	panic("implement me")
 }
 
-func (s *SimpleCollection) AddUngroupedFatalError(group ElementGroup, note string, err error) {
+func (s *SimpleCollection) AddUngroupedFatalError(note string, err error) {
 	panic("implement me")
 }
 
