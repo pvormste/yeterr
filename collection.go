@@ -5,14 +5,15 @@ type Collection interface {
 	HasError() bool
 	HasFatalError() bool
 	Count() int
-	AddError(err error, metadata ElementMetadata, group ElementGroup)
-	AddFatalError(err error, metadata ElementMetadata, group ElementGroup)
-	AddUngroupedError(err error, metadata ElementMetadata)
-	AddUngroupedFatalError(err error, metadata ElementMetadata)
+	AddError(err error, metadata ElementMetadata)
+	AddFatalError(err error, metadata ElementMetadata)
+	AddFlaggedError(err error, metadata ElementMetadata, flag ElementFlag)
+	AddFlaggedFatalError(err error, metadata ElementMetadata, flag ElementFlag)
 	AllErrors() []CollectionElement
-	LastError() CollectionElement
-	AllErrorsByGroup(group ElementGroup) []CollectionElement
-	FatalError() CollectionElement
+	FirstError() *CollectionElement
+	LastError() *CollectionElement
+	FilterErrorsByFlag(flag ElementFlag) []CollectionElement
+	FatalError() *CollectionElement
 	ToErrorSlice() []error
 }
 
@@ -44,25 +45,25 @@ func (s *SimpleCollection) Count() int {
 	return len(s.elements)
 }
 
-func (s *SimpleCollection) AddError(err error, metadata ElementMetadata, group ElementGroup) {
+func (s *SimpleCollection) AddError(err error, metadata ElementMetadata) {
+	panic("implement me")
+}
+
+func (s *SimpleCollection) AddFatalError(err error, metadata ElementMetadata) {
+	panic("implement me")
+}
+
+func (s *SimpleCollection) AddFlaggedError(err error, metadata ElementMetadata, flag ElementFlag) {
 	element := CollectionElement{
 		Error:    err,
 		Metadata: metadata,
-		Group:    group,
+		Flag:     flag,
 	}
 
 	s.elements = append(s.elements, element)
 }
 
-func (s *SimpleCollection) AddFatalError(err error, metadata ElementMetadata, group ElementGroup) {
-	panic("implement me")
-}
-
-func (s *SimpleCollection) AddUngroupedError(err error, metadata ElementMetadata) {
-	panic("implement me")
-}
-
-func (s *SimpleCollection) AddUngroupedFatalError(err error, metadata ElementMetadata) {
+func (s *SimpleCollection) AddFlaggedFatalError(err error, metadata ElementMetadata, flag ElementFlag) {
 	panic("implement me")
 }
 
@@ -70,15 +71,19 @@ func (s *SimpleCollection) AllErrors() []CollectionElement {
 	panic("implement me")
 }
 
-func (s *SimpleCollection) LastError() CollectionElement {
+func (s *SimpleCollection) FirstError() *CollectionElement {
 	panic("implement me")
 }
 
-func (s *SimpleCollection) AllErrorsByGroup(group ElementGroup) []CollectionElement {
+func (s *SimpleCollection) LastError() *CollectionElement {
 	panic("implement me")
 }
 
-func (s *SimpleCollection) FatalError() CollectionElement {
+func (s *SimpleCollection) FilterErrorsByFlag(flag ElementFlag) []CollectionElement {
+	panic("implement me")
+}
+
+func (s *SimpleCollection) FatalError() *CollectionElement {
 	panic("implement me")
 }
 

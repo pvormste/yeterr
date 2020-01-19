@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	groupReadError  ElementGroup = "read_error"
-	groupWriteError ElementGroup = "write_error"
+	flagReadError  ElementFlag = "read_error"
+	flagWriteError ElementFlag = "write_error"
 )
 
 var (
@@ -18,14 +18,14 @@ var (
 	errWriteError = errors.New("this simulates a write error")
 
 	elementRead = CollectionElement{
-		Group:    groupReadError,
-		Metadata: ElementMetadata{"filename": "text.txt"},
 		Error:    errReadError,
+		Metadata: ElementMetadata{"filename": "text.txt"},
+		Flag:     flagReadError,
 	}
 	elementWrite = CollectionElement{
-		Group:    groupWriteError,
-		Metadata: ElementMetadata{"filename": "text.txt"},
 		Error:    errWriteError,
+		Metadata: ElementMetadata{"filename": "text.txt"},
+		Flag:     flagWriteError,
 	}
 )
 
@@ -70,18 +70,18 @@ func TestSimpleCollection_Count(t *testing.T) {
 	})
 }
 
-func TestSimpleCollection_AddError(t *testing.T) {
+func TestSimpleCollection_AddFlaggedError(t *testing.T) {
 	collection := NewSimpleCollection()
 
 	t.Run("should successfully add an element to collection", func(t *testing.T) {
 		require.True(t, collection.IsEmpty())
 
-		collection.AddError(errReadError, ElementMetadata{"filename": "text.txt"}, ElementGroupUngrouped)
+		collection.AddFlaggedError(errReadError, ElementMetadata{"filename": "text.txt"}, ElementFlagNone)
 		assert.Equal(t, 1, collection.Count())
 
 		addedElement := collection.(*SimpleCollection).elements[0]
 		assert.Equal(t, errReadError, addedElement.Error)
 		assert.Equal(t, ElementMetadata{"filename": "text.txt"}, addedElement.Metadata)
-		assert.Equal(t, ElementGroupUngrouped, addedElement.Group)
+		assert.Equal(t, ElementFlagNone, addedElement.Flag)
 	})
 }

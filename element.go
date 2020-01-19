@@ -1,13 +1,13 @@
 package yeterr
 
-type ElementGroup string
+type ElementFlag string
 
-func (et ElementGroup) String() string {
-	return string(et)
+func (ef ElementFlag) String() string {
+	return string(ef)
 }
 
 const (
-	ElementGroupUngrouped ElementGroup = "ungrouped"
+	ElementFlagNone ElementFlag = "none"
 )
 
 type ElementMetadata map[string]string
@@ -15,5 +15,5 @@ type ElementMetadata map[string]string
 type CollectionElement struct {
 	Error    error
 	Metadata ElementMetadata
-	Group    ElementGroup
+	Flag     ElementFlag
 }
