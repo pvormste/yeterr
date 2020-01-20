@@ -64,7 +64,15 @@ func (s *SimpleCollection) AddFlaggedError(err error, metadata ElementMetadata, 
 }
 
 func (s *SimpleCollection) AddFlaggedFatalError(err error, metadata ElementMetadata, flag ElementFlag) {
-	panic("implement me")
+	if s.fatalError != nil {
+		return
+	}
+
+	s.fatalError = &CollectionElement{
+		Error:    err,
+		Metadata: metadata,
+		Flag:     flag,
+	}
 }
 
 func (s *SimpleCollection) AllErrors() []CollectionElement {

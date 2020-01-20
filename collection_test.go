@@ -85,3 +85,27 @@ func TestSimpleCollection_AddFlaggedError(t *testing.T) {
 		assert.Equal(t, ElementFlagNone, addedElement.Flag)
 	})
 }
+
+func TestSimpleCollection_AddFlaggedFatalError(t *testing.T) {
+	collection := NewSimpleCollection()
+
+	t.Run("should successfully add a fatal error", func(t *testing.T) {
+		require.True(t, collection.IsEmpty())
+
+		collection.AddFlaggedFatalError(errReadError, ElementMetadata{"number": "1"}, ElementFlagNone)
+
+		addedFatalError := collection.(*SimpleCollection).fatalError
+		assert.Equal(t, errReadError, addedFatalError.Error)
+		assert.Equal(t, ElementMetadata{"number": "1"}, addedFatalError.Metadata)
+		assert.Equal(t, ElementFlagNone, addedFatalError.Flag)
+	})
+
+	t.Run("should not overwrite an existing fatal error", func(t *testing.T) {
+		collection.AddFlaggedFatalError(errWriteError, ElementMetadata{"overwrite": "false"}, ElementFlagNone)
+
+		existingFatalError := collection.(*SimpleCollection).fatalError
+		assert.Equal(t, errReadError, existingFatalError.Error)
+		assert.Equal(t, ElementMetadata{"number": "1"}, existingFatalError.Metadata)
+		assert.Equal(t, ElementFlagNone, existingFatalError.Flag)
+	})
+}
