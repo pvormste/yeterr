@@ -13,6 +13,7 @@ type Collection interface {
 	FirstError() *CollectionElement
 	LastError() *CollectionElement
 	FilterErrorsByFlag(flag ElementFlag) []CollectionElement
+	ExcludeErrorsByFlag(flag ElementFlag) []CollectionElement
 	FatalError() *CollectionElement
 	ToErrorSlice() []error
 }
@@ -46,11 +47,11 @@ func (s *SimpleCollection) Count() int {
 }
 
 func (s *SimpleCollection) AddError(err error, metadata ElementMetadata) {
-	panic("implement me")
+	s.AddFlaggedError(err, metadata, ElementFlagNone)
 }
 
 func (s *SimpleCollection) AddFatalError(err error, metadata ElementMetadata) {
-	panic("implement me")
+	s.AddFlaggedFatalError(err, metadata, ElementFlagNone)
 }
 
 func (s *SimpleCollection) AddFlaggedError(err error, metadata ElementMetadata, flag ElementFlag) {
@@ -64,6 +65,8 @@ func (s *SimpleCollection) AddFlaggedError(err error, metadata ElementMetadata, 
 }
 
 func (s *SimpleCollection) AddFlaggedFatalError(err error, metadata ElementMetadata, flag ElementFlag) {
+	s.AddFlaggedError(err, metadata, flag)
+
 	if s.fatalError != nil {
 		return
 	}
@@ -88,6 +91,10 @@ func (s *SimpleCollection) LastError() *CollectionElement {
 }
 
 func (s *SimpleCollection) FilterErrorsByFlag(flag ElementFlag) []CollectionElement {
+	panic("implement me")
+}
+
+func (s *SimpleCollection) ExcludeErrorsByFlag(flag ElementFlag) []CollectionElement {
 	panic("implement me")
 }
 
