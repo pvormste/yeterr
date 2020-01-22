@@ -173,3 +173,100 @@ func TestSimpleCollection_AddFlaggedFatalError(t *testing.T) {
 		assert.Equal(t, ElementFlagNone, existingFatalError.Flag)
 	})
 }
+
+func TestSimpleCollection_AllErrors(t *testing.T) {
+	collection := NewSimpleCollection().(*SimpleCollection)
+
+	t.Run("should return an empty slice when there are no errors", func(t *testing.T) {
+		require.Equal(t, len(collection.elements), 0)
+
+		allErrors := collection.AllErrors()
+		assert.Equal(t, len(allErrors), 0)
+		assert.Equal(t, allErrors, []CollectionElement{})
+	})
+
+	t.Run("should return all elements from collection as slice", func(t *testing.T) {
+		elements := []CollectionElement{
+			{
+				Error:    errReadError,
+				Metadata: ElementMetadata{"read": "true"},
+				Flag:     ElementFlagNone,
+			},
+			{
+				Error:    errWriteError,
+				Metadata: ElementMetadata{"write": "true"},
+				Flag:     ElementFlagNone,
+			},
+		}
+
+		collection.elements = elements
+		require.Equal(t, len(collection.elements), 2)
+
+		allErrors := collection.AllErrors()
+		assert.Equal(t, elements, allErrors)
+	})
+}
+
+func TestSimpleCollection_FirstError(t *testing.T) {
+	collection := NewSimpleCollection().(*SimpleCollection)
+
+	t.Run("should return nil when there are no errors", func(t *testing.T) {
+		require.Equal(t, len(collection.elements), 0)
+
+		firstError := collection.FirstError()
+		assert.Nil(t, firstError)
+	})
+
+	t.Run("should return first element from collection", func(t *testing.T) {
+		elements := []CollectionElement{
+			{
+				Error:    errReadError,
+				Metadata: ElementMetadata{"read": "true"},
+				Flag:     ElementFlagNone,
+			},
+			{
+				Error:    errWriteError,
+				Metadata: ElementMetadata{"write": "true"},
+				Flag:     ElementFlagNone,
+			},
+		}
+
+		collection.elements = elements
+		require.Equal(t, len(collection.elements), 2)
+
+		firstError := collection.FirstError()
+		assert.Equal(t, &elements[0], firstError)
+	})
+}
+
+func TestSimpleCollection_LastError(t *testing.T) {
+	collection := NewSimpleCollection().(*SimpleCollection)
+
+	t.Run("should return nil when there are no errors", func(t *testing.T) {
+		require.Equal(t, len(collection.elements), 0)
+
+		firstError := collection.LastError()
+		assert.Nil(t, firstError)
+	})
+
+	t.Run("should return last element from collection", func(t *testing.T) {
+		elements := []CollectionElement{
+			{
+				Error:    errReadError,
+				Metadata: ElementMetadata{"read": "true"},
+				Flag:     ElementFlagNone,
+			},
+			{
+				Error:    errWriteError,
+				Metadata: ElementMetadata{"write": "true"},
+				Flag:     ElementFlagNone,
+			},
+		}
+
+		collection.elements = elements
+		require.Equal(t, len(collection.elements), 2)
+
+		lastError := collection.LastError()
+		assert.Equal(t, &elements[1], lastError)
+	})
+}

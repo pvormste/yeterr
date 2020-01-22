@@ -79,15 +79,24 @@ func (s *SimpleCollection) AddFlaggedFatalError(err error, metadata ElementMetad
 }
 
 func (s *SimpleCollection) AllErrors() []CollectionElement {
-	panic("implement me")
+	return s.elements
 }
 
 func (s *SimpleCollection) FirstError() *CollectionElement {
-	panic("implement me")
+	if len(s.elements) == 0 {
+		return nil
+	}
+
+	return &s.elements[0]
 }
 
 func (s *SimpleCollection) LastError() *CollectionElement {
-	panic("implement me")
+	if len(s.elements) == 0 {
+		return nil
+	}
+
+	lastIndex := len(s.elements) - 1
+	return &s.elements[lastIndex]
 }
 
 func (s *SimpleCollection) FilterErrorsByFlag(flag ElementFlag) []CollectionElement {
