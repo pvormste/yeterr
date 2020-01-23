@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	flagReadError  ElementFlag = "read_error"
-	flagWriteError ElementFlag = "write_error"
+	flagReadError  ErrorFlag = "read_error"
+	flagWriteError ErrorFlag = "write_error"
 )
 
 var (
@@ -19,12 +19,12 @@ var (
 
 	elementRead = CollectionElement{
 		Error:    errReadError,
-		Metadata: ElementMetadata{"filename": "text.txt"},
+		Metadata: ErrorMetadata{"filename": "text.txt"},
 		Flag:     flagReadError,
 	}
 	elementWrite = CollectionElement{
 		Error:    errWriteError,
-		Metadata: ElementMetadata{"filename": "text.txt"},
+		Metadata: ErrorMetadata{"filename": "text.txt"},
 		Flag:     flagWriteError,
 	}
 )
@@ -76,13 +76,13 @@ func TestErrorCollection_AddError(t *testing.T) {
 	t.Run("should successfully add an element to collection without specifiying flag", func(t *testing.T) {
 		require.True(t, collection.IsEmpty())
 
-		collection.AddError(errReadError, ElementMetadata{"filename": "text.txt"})
+		collection.AddError(errReadError, ErrorMetadata{"filename": "text.txt"})
 		assert.Equal(t, 1, collection.Count())
 
 		addedElement := collection.(*ErrorCollection).elements[0]
 		assert.Equal(t, errReadError, addedElement.Error)
-		assert.Equal(t, ElementMetadata{"filename": "text.txt"}, addedElement.Metadata)
-		assert.Equal(t, ElementFlagNone, addedElement.Flag)
+		assert.Equal(t, ErrorMetadata{"filename": "text.txt"}, addedElement.Metadata)
+		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 	})
 }
 
@@ -92,33 +92,33 @@ func TestErrorCollection_AddFatalError(t *testing.T) {
 	t.Run("should successfully add a fatal error without specifying flag", func(t *testing.T) {
 		require.True(t, collection.IsEmpty())
 
-		collection.AddFatalError(errReadError, ElementMetadata{"number": "1"})
+		collection.AddFatalError(errReadError, ErrorMetadata{"number": "1"})
 		assert.Equal(t, 1, collection.Count())
 
 		addedElement := collection.(*ErrorCollection).elements[0]
 		assert.Equal(t, errReadError, addedElement.Error)
-		assert.Equal(t, ElementMetadata{"number": "1"}, addedElement.Metadata)
-		assert.Equal(t, ElementFlagNone, addedElement.Flag)
+		assert.Equal(t, ErrorMetadata{"number": "1"}, addedElement.Metadata)
+		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 
 		addedFatalError := collection.(*ErrorCollection).fatalError
 		assert.Equal(t, errReadError, addedFatalError.Error)
-		assert.Equal(t, ElementMetadata{"number": "1"}, addedFatalError.Metadata)
-		assert.Equal(t, ElementFlagNone, addedFatalError.Flag)
+		assert.Equal(t, ErrorMetadata{"number": "1"}, addedFatalError.Metadata)
+		assert.Equal(t, ErrorFlagNone, addedFatalError.Flag)
 	})
 
 	t.Run("should not overwrite an existing fatal error", func(t *testing.T) {
-		collection.AddFatalError(errWriteError, ElementMetadata{"overwrite": "false"})
+		collection.AddFatalError(errWriteError, ErrorMetadata{"overwrite": "false"})
 		assert.Equal(t, 2, collection.Count())
 
 		addedElement := collection.(*ErrorCollection).elements[1]
 		assert.Equal(t, errWriteError, addedElement.Error)
-		assert.Equal(t, ElementMetadata{"overwrite": "false"}, addedElement.Metadata)
-		assert.Equal(t, ElementFlagNone, addedElement.Flag)
+		assert.Equal(t, ErrorMetadata{"overwrite": "false"}, addedElement.Metadata)
+		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 
 		existingFatalError := collection.(*ErrorCollection).fatalError
 		assert.Equal(t, errReadError, existingFatalError.Error)
-		assert.Equal(t, ElementMetadata{"number": "1"}, existingFatalError.Metadata)
-		assert.Equal(t, ElementFlagNone, existingFatalError.Flag)
+		assert.Equal(t, ErrorMetadata{"number": "1"}, existingFatalError.Metadata)
+		assert.Equal(t, ErrorFlagNone, existingFatalError.Flag)
 	})
 }
 
@@ -128,13 +128,13 @@ func TestErrorCollection_AddFlaggedError(t *testing.T) {
 	t.Run("should successfully add an element to collection", func(t *testing.T) {
 		require.True(t, collection.IsEmpty())
 
-		collection.AddFlaggedError(errReadError, ElementMetadata{"filename": "text.txt"}, ElementFlagNone)
+		collection.AddFlaggedError(errReadError, ErrorMetadata{"filename": "text.txt"}, ErrorFlagNone)
 		assert.Equal(t, 1, collection.Count())
 
 		addedElement := collection.(*ErrorCollection).elements[0]
 		assert.Equal(t, errReadError, addedElement.Error)
-		assert.Equal(t, ElementMetadata{"filename": "text.txt"}, addedElement.Metadata)
-		assert.Equal(t, ElementFlagNone, addedElement.Flag)
+		assert.Equal(t, ErrorMetadata{"filename": "text.txt"}, addedElement.Metadata)
+		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 	})
 }
 
@@ -144,33 +144,33 @@ func TestErrorCollection_AddFlaggedFatalError(t *testing.T) {
 	t.Run("should successfully add a fatal error", func(t *testing.T) {
 		require.True(t, collection.IsEmpty())
 
-		collection.AddFlaggedFatalError(errReadError, ElementMetadata{"number": "1"}, ElementFlagNone)
+		collection.AddFlaggedFatalError(errReadError, ErrorMetadata{"number": "1"}, ErrorFlagNone)
 		assert.Equal(t, 1, collection.Count())
 
 		addedElement := collection.(*ErrorCollection).elements[0]
 		assert.Equal(t, errReadError, addedElement.Error)
-		assert.Equal(t, ElementMetadata{"number": "1"}, addedElement.Metadata)
-		assert.Equal(t, ElementFlagNone, addedElement.Flag)
+		assert.Equal(t, ErrorMetadata{"number": "1"}, addedElement.Metadata)
+		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 
 		addedFatalError := collection.(*ErrorCollection).fatalError
 		assert.Equal(t, errReadError, addedFatalError.Error)
-		assert.Equal(t, ElementMetadata{"number": "1"}, addedFatalError.Metadata)
-		assert.Equal(t, ElementFlagNone, addedFatalError.Flag)
+		assert.Equal(t, ErrorMetadata{"number": "1"}, addedFatalError.Metadata)
+		assert.Equal(t, ErrorFlagNone, addedFatalError.Flag)
 	})
 
 	t.Run("should not overwrite an existing fatal error", func(t *testing.T) {
-		collection.AddFlaggedFatalError(errWriteError, ElementMetadata{"overwrite": "false"}, ElementFlagNone)
+		collection.AddFlaggedFatalError(errWriteError, ErrorMetadata{"overwrite": "false"}, ErrorFlagNone)
 		assert.Equal(t, 2, collection.Count())
 
 		addedElement := collection.(*ErrorCollection).elements[1]
 		assert.Equal(t, errWriteError, addedElement.Error)
-		assert.Equal(t, ElementMetadata{"overwrite": "false"}, addedElement.Metadata)
-		assert.Equal(t, ElementFlagNone, addedElement.Flag)
+		assert.Equal(t, ErrorMetadata{"overwrite": "false"}, addedElement.Metadata)
+		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 
 		existingFatalError := collection.(*ErrorCollection).fatalError
 		assert.Equal(t, errReadError, existingFatalError.Error)
-		assert.Equal(t, ElementMetadata{"number": "1"}, existingFatalError.Metadata)
-		assert.Equal(t, ElementFlagNone, existingFatalError.Flag)
+		assert.Equal(t, ErrorMetadata{"number": "1"}, existingFatalError.Metadata)
+		assert.Equal(t, ErrorFlagNone, existingFatalError.Flag)
 	})
 }
 
@@ -189,13 +189,13 @@ func TestErrorCollection_AllErrors(t *testing.T) {
 		elements := []CollectionElement{
 			{
 				Error:    errReadError,
-				Metadata: ElementMetadata{"read": "true"},
-				Flag:     ElementFlagNone,
+				Metadata: ErrorMetadata{"read": "true"},
+				Flag:     ErrorFlagNone,
 			},
 			{
 				Error:    errWriteError,
-				Metadata: ElementMetadata{"write": "true"},
-				Flag:     ElementFlagNone,
+				Metadata: ErrorMetadata{"write": "true"},
+				Flag:     ErrorFlagNone,
 			},
 		}
 
@@ -221,13 +221,13 @@ func TestErrorCollection_FirstError(t *testing.T) {
 		elements := []CollectionElement{
 			{
 				Error:    errReadError,
-				Metadata: ElementMetadata{"read": "true"},
-				Flag:     ElementFlagNone,
+				Metadata: ErrorMetadata{"read": "true"},
+				Flag:     ErrorFlagNone,
 			},
 			{
 				Error:    errWriteError,
-				Metadata: ElementMetadata{"write": "true"},
-				Flag:     ElementFlagNone,
+				Metadata: ErrorMetadata{"write": "true"},
+				Flag:     ErrorFlagNone,
 			},
 		}
 
@@ -253,13 +253,13 @@ func TestErrorCollection_LastError(t *testing.T) {
 		elements := []CollectionElement{
 			{
 				Error:    errReadError,
-				Metadata: ElementMetadata{"read": "true"},
-				Flag:     ElementFlagNone,
+				Metadata: ErrorMetadata{"read": "true"},
+				Flag:     ErrorFlagNone,
 			},
 			{
 				Error:    errWriteError,
-				Metadata: ElementMetadata{"write": "true"},
-				Flag:     ElementFlagNone,
+				Metadata: ErrorMetadata{"write": "true"},
+				Flag:     ErrorFlagNone,
 			},
 		}
 
