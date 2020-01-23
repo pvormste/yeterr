@@ -18,99 +18,99 @@ type Collection interface {
 	ToErrorSlice() []error
 }
 
-type SimpleCollection struct {
+type ErrorCollection struct {
 	elements   []CollectionElement
 	fatalError *CollectionElement
 }
 
-func NewSimpleCollection() Collection {
-	return &SimpleCollection{
+func NewErrorCollection() Collection {
+	return &ErrorCollection{
 		elements:   []CollectionElement{},
 		fatalError: nil,
 	}
 }
 
-func (s *SimpleCollection) IsEmpty() bool {
-	return !s.HasError()
+func (ec *ErrorCollection) IsEmpty() bool {
+	return !ec.HasError()
 }
 
-func (s *SimpleCollection) HasError() bool {
-	return len(s.elements) > 0
+func (ec *ErrorCollection) HasError() bool {
+	return len(ec.elements) > 0
 }
 
-func (s *SimpleCollection) HasFatalError() bool {
-	return s.fatalError != nil
+func (ec *ErrorCollection) HasFatalError() bool {
+	return ec.fatalError != nil
 }
 
-func (s *SimpleCollection) Count() int {
-	return len(s.elements)
+func (ec *ErrorCollection) Count() int {
+	return len(ec.elements)
 }
 
-func (s *SimpleCollection) AddError(err error, metadata ElementMetadata) {
-	s.AddFlaggedError(err, metadata, ElementFlagNone)
+func (ec *ErrorCollection) AddError(err error, metadata ElementMetadata) {
+	ec.AddFlaggedError(err, metadata, ElementFlagNone)
 }
 
-func (s *SimpleCollection) AddFatalError(err error, metadata ElementMetadata) {
-	s.AddFlaggedFatalError(err, metadata, ElementFlagNone)
+func (ec *ErrorCollection) AddFatalError(err error, metadata ElementMetadata) {
+	ec.AddFlaggedFatalError(err, metadata, ElementFlagNone)
 }
 
-func (s *SimpleCollection) AddFlaggedError(err error, metadata ElementMetadata, flag ElementFlag) {
+func (ec *ErrorCollection) AddFlaggedError(err error, metadata ElementMetadata, flag ElementFlag) {
 	element := CollectionElement{
 		Error:    err,
 		Metadata: metadata,
 		Flag:     flag,
 	}
 
-	s.elements = append(s.elements, element)
+	ec.elements = append(ec.elements, element)
 }
 
-func (s *SimpleCollection) AddFlaggedFatalError(err error, metadata ElementMetadata, flag ElementFlag) {
-	s.AddFlaggedError(err, metadata, flag)
+func (ec *ErrorCollection) AddFlaggedFatalError(err error, metadata ElementMetadata, flag ElementFlag) {
+	ec.AddFlaggedError(err, metadata, flag)
 
-	if s.fatalError != nil {
+	if ec.fatalError != nil {
 		return
 	}
 
-	s.fatalError = &CollectionElement{
+	ec.fatalError = &CollectionElement{
 		Error:    err,
 		Metadata: metadata,
 		Flag:     flag,
 	}
 }
 
-func (s *SimpleCollection) AllErrors() []CollectionElement {
-	return s.elements
+func (ec *ErrorCollection) AllErrors() []CollectionElement {
+	return ec.elements
 }
 
-func (s *SimpleCollection) FirstError() *CollectionElement {
-	if len(s.elements) == 0 {
+func (ec *ErrorCollection) FirstError() *CollectionElement {
+	if len(ec.elements) == 0 {
 		return nil
 	}
 
-	return &s.elements[0]
+	return &ec.elements[0]
 }
 
-func (s *SimpleCollection) LastError() *CollectionElement {
-	if len(s.elements) == 0 {
+func (ec *ErrorCollection) LastError() *CollectionElement {
+	if len(ec.elements) == 0 {
 		return nil
 	}
 
-	lastIndex := len(s.elements) - 1
-	return &s.elements[lastIndex]
+	lastIndex := len(ec.elements) - 1
+	return &ec.elements[lastIndex]
 }
 
-func (s *SimpleCollection) FilterErrorsByFlag(flag ElementFlag) []CollectionElement {
+func (ec *ErrorCollection) FilterErrorsByFlag(flag ElementFlag) []CollectionElement {
 	panic("implement me")
 }
 
-func (s *SimpleCollection) ExcludeErrorsByFlag(flag ElementFlag) []CollectionElement {
+func (ec *ErrorCollection) ExcludeErrorsByFlag(flag ElementFlag) []CollectionElement {
 	panic("implement me")
 }
 
-func (s *SimpleCollection) FatalError() *CollectionElement {
+func (ec *ErrorCollection) FatalError() *CollectionElement {
 	panic("implement me")
 }
 
-func (s *SimpleCollection) ToErrorSlice() []error {
+func (ec *ErrorCollection) ToErrorSlice() []error {
 	panic("implement me")
 }
