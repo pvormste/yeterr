@@ -270,3 +270,54 @@ func TestErrorCollection_LastError(t *testing.T) {
 		assert.Equal(t, &elements[1], lastError)
 	})
 }
+
+func TestErrorCollection_FatalError(t *testing.T) {
+	collection := NewErrorCollection().(*ErrorCollection)
+
+	t.Run("should return nil when there is no fatal error", func(t *testing.T) {
+		fatalError := collection.FatalError()
+		assert.Nil(t, fatalError)
+	})
+
+	t.Run("should return the fatal error when there exists one", func(t *testing.T) {
+		readFatalError := &CollectionElement{
+			Error:    errReadError,
+			Metadata: nil,
+			Flag:     flagReadError,
+		}
+
+		collection.fatalError = readFatalError
+
+		fatalError := collection.FatalError()
+		assert.Equal(t, readFatalError, fatalError)
+	})
+}
+
+func TestErrorCollection_ToErrorSlice(t *testing.T) {
+	collection := NewErrorCollection().(*ErrorCollection)
+
+	t.Run("should return an empty error slice when there are no errors", func(t *testing.T) {
+		errorsAsSlice := collection.ToErrorSlice()
+		assert.Equal(t, []error{}, errorsAsSlice)
+	})
+
+	t.Run("should return all errors as slice", func(t *testing.T) {
+		allErrorElements := []CollectionElement{
+			{
+				Error:    errReadError,
+				Metadata: nil,
+				Flag:     flagReadError,
+			},
+			{
+				Error:    errWriteError,
+				Metadata: nil,
+				Flag:     flagWriteError,
+			},
+		}
+
+		collection.elements = allErrorElements
+
+		errorsAsSlice := collection.ToErrorSlice()
+		assert.Equal(t, []error{errReadError, errWriteError}, errorsAsSlice)
+	})
+}

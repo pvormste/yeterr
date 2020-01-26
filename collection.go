@@ -124,9 +124,18 @@ func (ec *ErrorCollection) ExcludeErrorsByFlags(flags []ErrorFlag) []CollectionE
 }
 
 func (ec *ErrorCollection) FatalError() *CollectionElement {
-	panic("implement me")
+	return ec.fatalError
 }
 
 func (ec *ErrorCollection) ToErrorSlice() []error {
-	panic("implement me")
+	if len(ec.elements) == 0 {
+		return []error{}
+	}
+
+	var errSlice []error
+	for _, element := range ec.elements {
+		errSlice = append(errSlice, element.Error)
+	}
+
+	return errSlice
 }
