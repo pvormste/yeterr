@@ -271,6 +271,47 @@ func TestErrorCollection_LastError(t *testing.T) {
 	})
 }
 
+func TestErrorCollection_FilterErrorsByFlag(t *testing.T) {
+	collection := NewErrorCollection().(*ErrorCollection)
+
+	t.Run("should return empty slice when collection is empty", func(t *testing.T) {
+		filteredErrors := collection.FilterErrorsByFlag(flagReadError)
+		assert.Equal(t, []CollectionElement{}, filteredErrors)
+	})
+
+	t.Run("should return empty slice when there are no errors with this flag", func(t *testing.T) {
+		collection.elements = []CollectionElement{
+			{
+				Error:    errWriteError,
+				Metadata: nil,
+				Flag:     flagWriteError,
+			},
+		}
+
+		filteredErrors := collection.FilterErrorsByFlag(flagReadError)
+		assert.Equal(t, []CollectionElement{}, filteredErrors)
+	})
+
+	t.Run("should return only the errors filtered by flag", func(t *testing.T) {
+		readError := CollectionElement{
+			Error:    errReadError,
+			Metadata: nil,
+			Flag:     flagReadError,
+		}
+		collection.elements = []CollectionElement{
+			{
+				Error:    errWriteError,
+				Metadata: nil,
+				Flag:     flagWriteError,
+			},
+			readError,
+		}
+
+		filteredErrors := collection.FilterErrorsByFlag(flagReadError)
+		assert.Equal(t, []CollectionElement{readError}, filteredErrors)
+	})
+}
+
 func TestErrorCollection_FatalError(t *testing.T) {
 	collection := NewErrorCollection().(*ErrorCollection)
 
