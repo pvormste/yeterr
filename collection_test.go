@@ -11,11 +11,13 @@ import (
 const (
 	flagReadError  ErrorFlag = "read_error"
 	flagWriteError ErrorFlag = "write_error"
+	flagIOError    ErrorFlag = "io_error"
 )
 
 var (
 	errReadError  = errors.New("this simulates a read error")
 	errWriteError = errors.New("this simulates a write error")
+	errIOError    = errors.New("this simulates an IO error")
 
 	elementRead = CollectionElement{
 		Error:    errReadError,
@@ -309,6 +311,55 @@ func TestErrorCollection_FilterErrorsByFlag(t *testing.T) {
 
 		filteredErrors := collection.FilterErrorsByFlag(flagReadError)
 		assert.Equal(t, []CollectionElement{readError}, filteredErrors)
+	})
+}
+
+func TestErrorCollection_FilterErrorsByFlags(t *testing.T) {
+	collection := NewErrorCollection().(*ErrorCollection)
+
+	t.Run("should return empty slice when collection is empty", func(t *testing.T) {
+		filteredErrors := collection.FilterErrorsByFlags([]ErrorFlag{flagWriteError, flagReadError})
+		assert.Equal(t, []CollectionElement{}, filteredErrors)
+	})
+
+	t.Run("should return empty slice when there are no errors with provided flags", func(t *testing.T) {
+		collection.elements = []CollectionElement{
+			{
+				Error:    errIOError,
+				Metadata: nil,
+				Flag:     flagIOError,
+			},
+		}
+
+		filteredErrors := collection.FilterErrorsByFlags([]ErrorFlag{flagWriteError, flagReadError})
+		assert.Equal(t, []CollectionElement{}, filteredErrors)
+	})
+
+	t.Run("should return only the filtered errors by the provided flags", func(t *testing.T) {
+		readError := CollectionElement{
+			Error:    errReadError,
+			Metadata: nil,
+			Flag:     flagReadError,
+		}
+
+		writeError := CollectionElement{
+			Error:    errWriteError,
+			Metadata: nil,
+			Flag:     flagWriteError,
+		}
+
+		collection.elements = []CollectionElement{
+			{
+				Error:    errIOError,
+				Metadata: nil,
+				Flag:     flagIOError,
+			},
+			readError,
+			writeError,
+		}
+
+		filteredErrors := collection.FilterErrorsByFlags([]ErrorFlag{flagReadError, flagWriteError})
+		assert.Equal(t, []CollectionElement{readError, writeError}, filteredErrors)
 	})
 }
 

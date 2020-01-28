@@ -124,7 +124,22 @@ func (ec *ErrorCollection) FilterErrorsByFlag(flag ErrorFlag) []CollectionElemen
 }
 
 func (ec *ErrorCollection) FilterErrorsByFlags(flags []ErrorFlag) []CollectionElement {
-	panic("implement me")
+	filteredElements := make([]CollectionElement, 0)
+
+	if len(ec.elements) == 0 {
+		return filteredElements
+	}
+
+	for _, element := range ec.elements {
+		for _, flag := range flags {
+			if element.Flag == flag {
+				filteredElements = append(filteredElements, element)
+				break
+			}
+		}
+	}
+
+	return filteredElements
 }
 
 func (ec *ErrorCollection) ExcludeErrorsByFlag(flag ErrorFlag) []CollectionElement {
