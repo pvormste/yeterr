@@ -13,9 +13,9 @@ type Collection interface {
 	FirstError() *CollectionElement
 	LastError() *CollectionElement
 	FilterErrorsByFlag(flag ErrorFlag) []CollectionElement
-	FilterErrorsByFlags(flags []ErrorFlag) []CollectionElement
+	FilterErrorsByFlags(flags ...ErrorFlag) []CollectionElement
 	ExcludeErrorsByFlag(flag ErrorFlag) []CollectionElement
-	ExcludeErrorsByFlags(flags []ErrorFlag) []CollectionElement
+	ExcludeErrorsByFlags(flags ...ErrorFlag) []CollectionElement
 	FatalError() *CollectionElement
 	ToErrorSlice() []error
 }
@@ -123,7 +123,7 @@ func (ec *ErrorCollection) FilterErrorsByFlag(flag ErrorFlag) []CollectionElemen
 	return filteredElements
 }
 
-func (ec *ErrorCollection) FilterErrorsByFlags(flags []ErrorFlag) []CollectionElement {
+func (ec *ErrorCollection) FilterErrorsByFlags(flags ...ErrorFlag) []CollectionElement {
 	filteredElements := make([]CollectionElement, 0)
 
 	if len(ec.elements) == 0 {
@@ -146,7 +146,7 @@ func (ec *ErrorCollection) ExcludeErrorsByFlag(flag ErrorFlag) []CollectionEleme
 	panic("implement me")
 }
 
-func (ec *ErrorCollection) ExcludeErrorsByFlags(flags []ErrorFlag) []CollectionElement {
+func (ec *ErrorCollection) ExcludeErrorsByFlags(flags ...ErrorFlag) []CollectionElement {
 	panic("implement me")
 }
 

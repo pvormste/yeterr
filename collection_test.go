@@ -318,7 +318,7 @@ func TestErrorCollection_FilterErrorsByFlags(t *testing.T) {
 	collection := NewErrorCollection().(*ErrorCollection)
 
 	t.Run("should return empty slice when collection is empty", func(t *testing.T) {
-		filteredErrors := collection.FilterErrorsByFlags([]ErrorFlag{flagWriteError, flagReadError})
+		filteredErrors := collection.FilterErrorsByFlags(flagWriteError, flagReadError)
 		assert.Equal(t, []CollectionElement{}, filteredErrors)
 	})
 
@@ -331,7 +331,7 @@ func TestErrorCollection_FilterErrorsByFlags(t *testing.T) {
 			},
 		}
 
-		filteredErrors := collection.FilterErrorsByFlags([]ErrorFlag{flagWriteError, flagReadError})
+		filteredErrors := collection.FilterErrorsByFlags(flagWriteError, flagReadError)
 		assert.Equal(t, []CollectionElement{}, filteredErrors)
 	})
 
@@ -358,7 +358,7 @@ func TestErrorCollection_FilterErrorsByFlags(t *testing.T) {
 			writeError,
 		}
 
-		filteredErrors := collection.FilterErrorsByFlags([]ErrorFlag{flagReadError, flagWriteError})
+		filteredErrors := collection.FilterErrorsByFlags(flagReadError, flagWriteError)
 		assert.Equal(t, []CollectionElement{readError, writeError}, filteredErrors)
 	})
 }
