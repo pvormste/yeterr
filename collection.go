@@ -143,11 +143,41 @@ func (ec *ErrorCollection) FilterErrorsByFlags(flags ...ErrorFlag) []CollectionE
 }
 
 func (ec *ErrorCollection) ExcludeErrorsByFlag(flag ErrorFlag) []CollectionElement {
-	panic("implement me")
+	filteredErrors := make([]CollectionElement, 0)
+	if len(ec.elements) == 0 {
+		return filteredErrors
+	}
+
+	for _, element := range ec.elements {
+		if element.Flag != flag {
+			filteredErrors = append(filteredErrors, element)
+		}
+	}
+
+	return filteredErrors
 }
 
 func (ec *ErrorCollection) ExcludeErrorsByFlags(flags ...ErrorFlag) []CollectionElement {
-	panic("implement me")
+	filteredErrors := make([]CollectionElement, 0)
+	if len(ec.elements) == 0 {
+		return filteredErrors
+	}
+
+	for _, element := range ec.elements {
+		shouldAppend := true
+		for _, flag := range flags {
+			if element.Flag == flag {
+				shouldAppend = false
+				break
+			}
+		}
+
+		if shouldAppend {
+			filteredErrors = append(filteredErrors, element)
+		}
+	}
+
+	return filteredErrors
 }
 
 func (ec *ErrorCollection) FatalError() *CollectionElement {
