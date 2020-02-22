@@ -27,4 +27,4 @@ func example() {
 }
 ```
 
-For more detailed information please visit the godoc: https://godoc.org/github.com/pvormste/yeterr
+For more detailed information please visit the pkg docs: https://pkg.go.dev/github.com/pvormste/yeterr
