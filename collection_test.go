@@ -276,12 +276,12 @@ func TestErrorCollection_LastError(t *testing.T) {
 func TestErrorCollection_FilterErrorsByFlag(t *testing.T) {
 	collection := NewErrorCollection().(*ErrorCollection)
 
-	t.Run("should return empty slice when collection is empty", func(t *testing.T) {
-		filteredErrors := collection.FilterErrorsByFlag(flagReadError)
-		assert.Equal(t, []CollectionElement{}, filteredErrors)
+	t.Run("should return empty collection when overall collection is empty", func(t *testing.T) {
+		filteredCollection := collection.FilterErrorsByFlag(flagReadError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{}}, filteredCollection)
 	})
 
-	t.Run("should return empty slice when there are no errors with this flag", func(t *testing.T) {
+	t.Run("should return empty collection when there are no errors with this flag", func(t *testing.T) {
 		collection.elements = []CollectionElement{
 			{
 				Error:    errWriteError,
@@ -290,39 +290,68 @@ func TestErrorCollection_FilterErrorsByFlag(t *testing.T) {
 			},
 		}
 
-		filteredErrors := collection.FilterErrorsByFlag(flagReadError)
-		assert.Equal(t, []CollectionElement{}, filteredErrors)
+		filteredCollection := collection.FilterErrorsByFlag(flagReadError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{}}, filteredCollection)
 	})
 
-	t.Run("should return only the errors filtered by flag", func(t *testing.T) {
+	t.Run("should return a collection containing only the errors filtered by flag without fatal error having another flag", func(t *testing.T) {
 		readError := CollectionElement{
 			Error:    errReadError,
 			Metadata: nil,
 			Flag:     flagReadError,
 		}
-		collection.elements = []CollectionElement{
-			{
-				Error:    errWriteError,
-				Metadata: nil,
-				Flag:     flagWriteError,
-			},
-			readError,
+
+		writeError := CollectionElement{
+			Error:    errWriteError,
+			Metadata: nil,
+			Flag:     flagWriteError,
 		}
 
+		collection.elements = []CollectionElement{
+			readError,
+			writeError,
+		}
+
+		collection.fatalError = &writeError
+
 		filteredErrors := collection.FilterErrorsByFlag(flagReadError)
-		assert.Equal(t, []CollectionElement{readError}, filteredErrors)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{readError}}, filteredErrors)
+	})
+
+	t.Run("should return a collection containing only the errors filtered by flag including fatal error with same flag", func(t *testing.T) {
+		readError := CollectionElement{
+			Error:    errReadError,
+			Metadata: nil,
+			Flag:     flagReadError,
+		}
+
+		writeError := CollectionElement{
+			Error:    errWriteError,
+			Metadata: nil,
+			Flag:     flagWriteError,
+		}
+
+		collection.elements = []CollectionElement{
+			readError,
+			writeError,
+		}
+
+		collection.fatalError = &readError
+
+		filteredErrors := collection.FilterErrorsByFlag(flagReadError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{readError}, fatalError: &readError}, filteredErrors)
 	})
 }
 
 func TestErrorCollection_FilterErrorsByFlags(t *testing.T) {
 	collection := NewErrorCollection().(*ErrorCollection)
 
-	t.Run("should return empty slice when collection is empty", func(t *testing.T) {
-		filteredErrors := collection.FilterErrorsByFlags(flagWriteError, flagReadError)
-		assert.Equal(t, []CollectionElement{}, filteredErrors)
+	t.Run("should return empty collection when collection is empty", func(t *testing.T) {
+		filteredCollection := collection.FilterErrorsByFlags(flagWriteError, flagReadError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{}}, filteredCollection)
 	})
 
-	t.Run("should return empty slice when there are no errors with provided flags", func(t *testing.T) {
+	t.Run("should return empty collection when there are no errors with provided flags", func(t *testing.T) {
 		collection.elements = []CollectionElement{
 			{
 				Error:    errIOError,
@@ -331,11 +360,11 @@ func TestErrorCollection_FilterErrorsByFlags(t *testing.T) {
 			},
 		}
 
-		filteredErrors := collection.FilterErrorsByFlags(flagWriteError, flagReadError)
-		assert.Equal(t, []CollectionElement{}, filteredErrors)
+		filteredCollection := collection.FilterErrorsByFlags(flagWriteError, flagReadError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{}}, filteredCollection)
 	})
 
-	t.Run("should return only the filtered errors by the provided flags", func(t *testing.T) {
+	t.Run("should return a collection containing only the errors filtered by flags without fatal error having another flag", func(t *testing.T) {
 		readError := CollectionElement{
 			Error:    errReadError,
 			Metadata: nil,
@@ -348,90 +377,6 @@ func TestErrorCollection_FilterErrorsByFlags(t *testing.T) {
 			Flag:     flagWriteError,
 		}
 
-		collection.elements = []CollectionElement{
-			{
-				Error:    errIOError,
-				Metadata: nil,
-				Flag:     flagIOError,
-			},
-			readError,
-			writeError,
-		}
-
-		filteredErrors := collection.FilterErrorsByFlags(flagReadError, flagWriteError)
-		assert.Equal(t, []CollectionElement{readError, writeError}, filteredErrors)
-	})
-}
-
-func TestErrorCollection_ExcludeErrorsByFlag(t *testing.T) {
-	collection := NewErrorCollection().(*ErrorCollection)
-
-	t.Run("should return empty slice when collection is empty", func(t *testing.T) {
-		filteredErrors := collection.ExcludeErrorsByFlag(flagReadError)
-		assert.Equal(t, []CollectionElement{}, filteredErrors)
-	})
-
-	t.Run("should return empty slice when there only exist excluded errors", func(t *testing.T) {
-		collection.elements = []CollectionElement{
-			{
-				Error:    errReadError,
-				Metadata: nil,
-				Flag:     flagReadError,
-			},
-		}
-
-		filteredErrors := collection.ExcludeErrorsByFlag(flagReadError)
-		assert.Equal(t, []CollectionElement{}, filteredErrors)
-	})
-
-	t.Run("should only return errors which do not have the excluded flag", func(t *testing.T) {
-		writeError := CollectionElement{
-			Error:    errWriteError,
-			Metadata: nil,
-			Flag:     flagWriteError,
-		}
-
-		collection.elements = []CollectionElement{
-			{
-				Error:    errReadError,
-				Metadata: nil,
-				Flag:     flagReadError,
-			},
-			writeError,
-		}
-
-		filteredErrors := collection.ExcludeErrorsByFlag(flagReadError)
-		assert.Equal(t, []CollectionElement{writeError}, filteredErrors)
-	})
-}
-
-func TestErrorCollection_ExcludeErrorsByFlags(t *testing.T) {
-	collection := NewErrorCollection().(*ErrorCollection)
-
-	t.Run("should return empty slice when collection is empty", func(t *testing.T) {
-		filteredErrors := collection.ExcludeErrorsByFlags(flagReadError, flagWriteError)
-		assert.Equal(t, []CollectionElement{}, filteredErrors)
-	})
-
-	t.Run("should return empty slice when there are only excluded items in collection", func(t *testing.T) {
-		collection.elements = []CollectionElement{
-			{
-				Error:    errReadError,
-				Metadata: nil,
-				Flag:     flagReadError,
-			},
-			{
-				Error:    errWriteError,
-				Metadata: nil,
-				Flag:     flagWriteError,
-			},
-		}
-
-		filteredErrors := collection.ExcludeErrorsByFlags(flagReadError, flagWriteError)
-		assert.Equal(t, []CollectionElement{}, filteredErrors)
-	})
-
-	t.Run("should return only items which were not excluded by flag", func(t *testing.T) {
 		ioError := CollectionElement{
 			Error:    errIOError,
 			Metadata: nil,
@@ -439,6 +384,125 @@ func TestErrorCollection_ExcludeErrorsByFlags(t *testing.T) {
 		}
 
 		collection.elements = []CollectionElement{
+			readError,
+			writeError,
+			ioError,
+		}
+
+		filteredCollection := collection.FilterErrorsByFlags(flagReadError, flagWriteError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{readError, writeError}}, filteredCollection)
+	})
+
+	t.Run("should return a collection containing only the errors filtered by flags including fatal error having one of the flags", func(t *testing.T) {
+		readError := CollectionElement{
+			Error:    errReadError,
+			Metadata: nil,
+			Flag:     flagReadError,
+		}
+
+		writeError := CollectionElement{
+			Error:    errWriteError,
+			Metadata: nil,
+			Flag:     flagWriteError,
+		}
+
+		ioError := CollectionElement{
+			Error:    errIOError,
+			Metadata: nil,
+			Flag:     flagIOError,
+		}
+
+		collection.elements = []CollectionElement{
+			readError,
+			writeError,
+			ioError,
+		}
+
+		collection.fatalError = &writeError
+
+		filteredCollection := collection.FilterErrorsByFlags(flagReadError, flagWriteError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{readError, writeError}, fatalError: &writeError}, filteredCollection)
+	})
+}
+
+func TestErrorCollection_ExcludeErrorsByFlag(t *testing.T) {
+	collection := NewErrorCollection().(*ErrorCollection)
+
+	t.Run("should return empty collection when collection is empty", func(t *testing.T) {
+		filteredCollection := collection.ExcludeErrorsByFlag(flagReadError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{}}, filteredCollection)
+	})
+
+	t.Run("should return empty collection when there only exist excluded errors", func(t *testing.T) {
+		collection.elements = []CollectionElement{
+			{
+				Error:    errReadError,
+				Metadata: nil,
+				Flag:     flagReadError,
+			},
+		}
+
+		filteredCollection := collection.ExcludeErrorsByFlag(flagReadError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{}}, filteredCollection)
+	})
+
+	t.Run("should only return errors in a new collection which do not have the excluded flag", func(t *testing.T) {
+		writeError := CollectionElement{
+			Error:    errWriteError,
+			Metadata: nil,
+			Flag:     flagWriteError,
+		}
+
+		readError := CollectionElement{
+			Error:    errReadError,
+			Metadata: nil,
+			Flag:     flagReadError,
+		}
+
+		collection.elements = []CollectionElement{
+			writeError,
+			readError,
+		}
+
+		filteredCollection := collection.ExcludeErrorsByFlag(flagReadError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{writeError}}, filteredCollection)
+	})
+
+	t.Run("should only return errors in a new collection which do not have the excluded flag including fatal error", func(t *testing.T) {
+		writeError := CollectionElement{
+			Error:    errWriteError,
+			Metadata: nil,
+			Flag:     flagWriteError,
+		}
+
+		readError := CollectionElement{
+			Error:    errReadError,
+			Metadata: nil,
+			Flag:     flagReadError,
+		}
+
+		collection.elements = []CollectionElement{
+			writeError,
+			readError,
+		}
+
+		collection.fatalError = &writeError
+
+		filteredCollection := collection.ExcludeErrorsByFlag(flagReadError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{writeError}, fatalError: &writeError}, filteredCollection)
+	})
+}
+
+func TestErrorCollection_ExcludeErrorsByFlags(t *testing.T) {
+	collection := NewErrorCollection().(*ErrorCollection)
+
+	t.Run("should return empty collection when collection is empty", func(t *testing.T) {
+		filteredCollection := collection.ExcludeErrorsByFlags(flagReadError, flagWriteError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{}}, filteredCollection)
+	})
+
+	t.Run("should return empty collection when there are only excluded items in collection", func(t *testing.T) {
+		collection.elements = []CollectionElement{
 			{
 				Error:    errReadError,
 				Metadata: nil,
@@ -449,11 +513,70 @@ func TestErrorCollection_ExcludeErrorsByFlags(t *testing.T) {
 				Metadata: nil,
 				Flag:     flagWriteError,
 			},
-			ioError,
 		}
 
-		filteredErrors := collection.ExcludeErrorsByFlags(flagReadError, flagWriteError)
-		assert.Equal(t, []CollectionElement{ioError}, filteredErrors)
+		filteredCollection := collection.ExcludeErrorsByFlags(flagReadError, flagWriteError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{}}, filteredCollection)
+	})
+
+	t.Run("should return only items in new collection which were not excluded by flag", func(t *testing.T) {
+		ioError := CollectionElement{
+			Error:    errIOError,
+			Metadata: nil,
+			Flag:     flagIOError,
+		}
+
+		readError := CollectionElement{
+			Error:    errReadError,
+			Metadata: nil,
+			Flag:     flagReadError,
+		}
+
+		writeError := CollectionElement{
+			Error:    errWriteError,
+			Metadata: nil,
+			Flag:     flagWriteError,
+		}
+
+		collection.elements = []CollectionElement{
+			ioError,
+			readError,
+			writeError,
+		}
+
+		filteredCollection := collection.ExcludeErrorsByFlags(flagReadError, flagWriteError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{ioError}}, filteredCollection)
+	})
+
+	t.Run("should return only items in new collection which were not excluded by flag including fatal error", func(t *testing.T) {
+		ioError := CollectionElement{
+			Error:    errIOError,
+			Metadata: nil,
+			Flag:     flagIOError,
+		}
+
+		readError := CollectionElement{
+			Error:    errReadError,
+			Metadata: nil,
+			Flag:     flagReadError,
+		}
+
+		writeError := CollectionElement{
+			Error:    errWriteError,
+			Metadata: nil,
+			Flag:     flagWriteError,
+		}
+
+		collection.elements = []CollectionElement{
+			ioError,
+			readError,
+			writeError,
+		}
+
+		collection.fatalError = &ioError
+
+		filteredCollection := collection.ExcludeErrorsByFlags(flagReadError, flagWriteError)
+		assert.Equal(t, &ErrorCollection{elements: []CollectionElement{ioError}, fatalError: &ioError}, filteredCollection)
 	})
 }
 
