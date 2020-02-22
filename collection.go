@@ -13,10 +13,10 @@ type Collection interface {
 	AllErrors() []CollectionElement
 	FirstError() *CollectionElement
 	LastError() *CollectionElement
-	FilterErrorsByFlag(flag ErrorFlag) []CollectionElement
-	FilterErrorsByFlags(flags ...ErrorFlag) []CollectionElement
-	ExcludeErrorsByFlag(flag ErrorFlag) []CollectionElement
-	ExcludeErrorsByFlags(flags ...ErrorFlag) []CollectionElement
+	FilterErrorsByFlag(flag ErrorFlag) Collection
+	FilterErrorsByFlags(flags ...ErrorFlag) Collection
+	ExcludeErrorsByFlag(flag ErrorFlag) Collection
+	ExcludeErrorsByFlags(flags ...ErrorFlag) Collection
 	FatalError() *CollectionElement
 	ToErrorSlice() []error
 }
@@ -125,64 +125,90 @@ func (ec *ErrorCollection) LastError() *CollectionElement {
 	return &ec.elements[lastIndex]
 }
 
-// FilterErrorsByFlag returns only those error items as slice which do have the specific flag.
-func (ec *ErrorCollection) FilterErrorsByFlag(flag ErrorFlag) []CollectionElement {
-	filteredElements := make([]CollectionElement, 0)
+// FilterErrorsByFlag returns only those error items as new collection which do have the specific flag.
+func (ec *ErrorCollection) FilterErrorsByFlag(flag ErrorFlag) Collection {
+	filteredCollection := &ErrorCollection{
+		elements:   make([]CollectionElement, 0),
+		fatalError: nil,
+	}
 
 	if len(ec.elements) == 0 {
-		return filteredElements
+		return filteredCollection
 	}
 
 	for _, element := range ec.elements {
 		if element.Flag == flag {
-			filteredElements = append(filteredElements, element)
+			filteredCollection.elements = append(filteredCollection.elements, element)
 		}
 	}
 
-	return filteredElements
+	if ec.HasFatalError() && ec.fatalError.Flag == flag {
+		filteredCollection.fatalError = ec.fatalError
+	}
+
+	return filteredCollection
 }
 
-// FilterErrorsByFlags returns only those error items as slice which do have one of the specific flags.
-func (ec *ErrorCollection) FilterErrorsByFlags(flags ...ErrorFlag) []CollectionElement {
-	filteredElements := make([]CollectionElement, 0)
+// FilterErrorsByFlags returns only those error items as new collection which do have one of the specific flags.
+func (ec *ErrorCollection) FilterErrorsByFlags(flags ...ErrorFlag) Collection {
+	filteredCollection := &ErrorCollection{
+		elements:   make([]CollectionElement, 0),
+		fatalError: nil,
+	}
 
 	if len(ec.elements) == 0 {
-		return filteredElements
+		return filteredCollection
 	}
 
 	for _, element := range ec.elements {
 		for _, flag := range flags {
+			if ec.HasFatalError() && !filteredCollection.HasFatalError() && ec.fatalError.Flag == flag {
+				filteredCollection.fatalError = ec.fatalError
+			}
+
 			if element.Flag == flag {
-				filteredElements = append(filteredElements, element)
+				filteredCollection.elements = append(filteredCollection.elements, element)
 				break
 			}
 		}
 	}
 
-	return filteredElements
+	return filteredCollection
 }
 
-// ExcludeErrorsByFlag returns all error items as slice which do not have the excluded flag.
-func (ec *ErrorCollection) ExcludeErrorsByFlag(flag ErrorFlag) []CollectionElement {
-	filteredErrors := make([]CollectionElement, 0)
+// ExcludeErrorsByFlag returns all error items as new collection which do not have the excluded flag.
+func (ec *ErrorCollection) ExcludeErrorsByFlag(flag ErrorFlag) Collection {
+	filteredCollection := &ErrorCollection{
+		elements:   make([]CollectionElement, 0),
+		fatalError: nil,
+	}
+
 	if len(ec.elements) == 0 {
-		return filteredErrors
+		return filteredCollection
 	}
 
 	for _, element := range ec.elements {
 		if element.Flag != flag {
-			filteredErrors = append(filteredErrors, element)
+			filteredCollection.elements = append(filteredCollection.elements, element)
 		}
 	}
 
-	return filteredErrors
+	if ec.HasFatalError() && ec.fatalError.Flag != flag {
+		filteredCollection.fatalError = ec.fatalError
+	}
+
+	return filteredCollection
 }
 
-// ExcludeErrorsByFlags returns all error items as slice which do not have one of the excluded flags.
-func (ec *ErrorCollection) ExcludeErrorsByFlags(flags ...ErrorFlag) []CollectionElement {
-	filteredErrors := make([]CollectionElement, 0)
+// ExcludeErrorsByFlags returns all error items as new collection which do not have one of the excluded flags.
+func (ec *ErrorCollection) ExcludeErrorsByFlags(flags ...ErrorFlag) Collection {
+	filteredCollection := &ErrorCollection{
+		elements:   make([]CollectionElement, 0),
+		fatalError: nil,
+	}
+
 	if len(ec.elements) == 0 {
-		return filteredErrors
+		return filteredCollection
 	}
 
 	for _, element := range ec.elements {
@@ -195,11 +221,18 @@ func (ec *ErrorCollection) ExcludeErrorsByFlags(flags ...ErrorFlag) []Collection
 		}
 
 		if shouldAppend {
-			filteredErrors = append(filteredErrors, element)
+			filteredCollection.elements = append(filteredCollection.elements, element)
 		}
 	}
 
-	return filteredErrors
+	filteredCollection.fatalError = ec.fatalError
+	for _, flag := range flags {
+		if filteredCollection.HasFatalError() && filteredCollection.fatalError.Flag == flag {
+			filteredCollection.fatalError = nil
+		}
+	}
+
+	return filteredCollection
 }
 
 // FatalError returns the first added fatal error. Nil if there does not exist one.
