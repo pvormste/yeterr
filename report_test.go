@@ -20,16 +20,32 @@ var (
 	errIOError    = errors.New("this simulates an IO error")
 
 	elementRead = ReportError{
-		Error:    errReadError,
-		Metadata: ErrorMetadata{"filename": "text.txt"},
-		Flag:     flagReadError,
+		WrappedError: errReadError,
+		Metadata:     ErrorMetadata{"filename": "text.txt"},
+		Flag:         flagReadError,
 	}
 	elementWrite = ReportError{
-		Error:    errWriteError,
-		Metadata: ErrorMetadata{"filename": "text.txt"},
-		Flag:     flagWriteError,
+		WrappedError: errWriteError,
+		Metadata:     ErrorMetadata{"filename": "text.txt"},
+		Flag:         flagWriteError,
 	}
 )
+
+func TestReportError_Error(t *testing.T) {
+	reportErr := ReportError{
+		WrappedError: errReadError,
+	}
+
+	assert.Equal(t, errReadError.Error(), reportErr.Error())
+}
+
+func TestReportError_Unwrap(t *testing.T) {
+	reportErr := ReportError{
+		WrappedError: errReadError,
+	}
+
+	assert.Equal(t, errReadError, reportErr.Unwrap())
+}
 
 func TestSimpleReport_IsEmpty_and_HasErrors(t *testing.T) {
 	report := NewSimpleReport()
@@ -82,7 +98,7 @@ func TestSimpleReport_AddError(t *testing.T) {
 		assert.Equal(t, 1, report.Count())
 
 		addedElement := report.(*SimpleReport).elements[0]
-		assert.Equal(t, errReadError, addedElement.Error)
+		assert.Equal(t, errReadError, addedElement.Unwrap())
 		assert.Equal(t, ErrorMetadata{"filename": "text.txt"}, addedElement.Metadata)
 		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 	})
@@ -98,12 +114,12 @@ func TestSimpleReport_AddFatalError(t *testing.T) {
 		assert.Equal(t, 1, report.Count())
 
 		addedElement := report.(*SimpleReport).elements[0]
-		assert.Equal(t, errReadError, addedElement.Error)
+		assert.Equal(t, errReadError, addedElement.Unwrap())
 		assert.Equal(t, ErrorMetadata{"number": "1"}, addedElement.Metadata)
 		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 
 		addedFatalError := report.(*SimpleReport).fatalError
-		assert.Equal(t, errReadError, addedFatalError.Error)
+		assert.Equal(t, errReadError, addedFatalError.Unwrap())
 		assert.Equal(t, ErrorMetadata{"number": "1"}, addedFatalError.Metadata)
 		assert.Equal(t, ErrorFlagNone, addedFatalError.Flag)
 	})
@@ -113,12 +129,12 @@ func TestSimpleReport_AddFatalError(t *testing.T) {
 		assert.Equal(t, 2, report.Count())
 
 		addedElement := report.(*SimpleReport).elements[1]
-		assert.Equal(t, errWriteError, addedElement.Error)
+		assert.Equal(t, errWriteError, addedElement.Unwrap())
 		assert.Equal(t, ErrorMetadata{"overwrite": "false"}, addedElement.Metadata)
 		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 
 		existingFatalError := report.(*SimpleReport).fatalError
-		assert.Equal(t, errReadError, existingFatalError.Error)
+		assert.Equal(t, errReadError, existingFatalError.Unwrap())
 		assert.Equal(t, ErrorMetadata{"number": "1"}, existingFatalError.Metadata)
 		assert.Equal(t, ErrorFlagNone, existingFatalError.Flag)
 	})
@@ -134,7 +150,7 @@ func TestSimpleReport_AddFlaggedError(t *testing.T) {
 		assert.Equal(t, 1, report.Count())
 
 		addedElement := report.(*SimpleReport).elements[0]
-		assert.Equal(t, errReadError, addedElement.Error)
+		assert.Equal(t, errReadError, addedElement.Unwrap())
 		assert.Equal(t, ErrorMetadata{"filename": "text.txt"}, addedElement.Metadata)
 		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 	})
@@ -150,12 +166,12 @@ func TestSimpleReport_AddFlaggedFatalError(t *testing.T) {
 		assert.Equal(t, 1, report.Count())
 
 		addedElement := report.(*SimpleReport).elements[0]
-		assert.Equal(t, errReadError, addedElement.Error)
+		assert.Equal(t, errReadError, addedElement.Unwrap())
 		assert.Equal(t, ErrorMetadata{"number": "1"}, addedElement.Metadata)
 		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 
 		addedFatalError := report.(*SimpleReport).fatalError
-		assert.Equal(t, errReadError, addedFatalError.Error)
+		assert.Equal(t, errReadError, addedFatalError.Unwrap())
 		assert.Equal(t, ErrorMetadata{"number": "1"}, addedFatalError.Metadata)
 		assert.Equal(t, ErrorFlagNone, addedFatalError.Flag)
 	})
@@ -165,12 +181,12 @@ func TestSimpleReport_AddFlaggedFatalError(t *testing.T) {
 		assert.Equal(t, 2, report.Count())
 
 		addedElement := report.(*SimpleReport).elements[1]
-		assert.Equal(t, errWriteError, addedElement.Error)
+		assert.Equal(t, errWriteError, addedElement.Unwrap())
 		assert.Equal(t, ErrorMetadata{"overwrite": "false"}, addedElement.Metadata)
 		assert.Equal(t, ErrorFlagNone, addedElement.Flag)
 
 		existingFatalError := report.(*SimpleReport).fatalError
-		assert.Equal(t, errReadError, existingFatalError.Error)
+		assert.Equal(t, errReadError, existingFatalError.Unwrap())
 		assert.Equal(t, ErrorMetadata{"number": "1"}, existingFatalError.Metadata)
 		assert.Equal(t, ErrorFlagNone, existingFatalError.Flag)
 	})
@@ -190,14 +206,14 @@ func TestSimpleReport_AllErrors(t *testing.T) {
 	t.Run("should return all elements from report as slice", func(t *testing.T) {
 		elements := []ReportError{
 			{
-				Error:    errReadError,
-				Metadata: ErrorMetadata{"read": "true"},
-				Flag:     ErrorFlagNone,
+				WrappedError: errReadError,
+				Metadata:     ErrorMetadata{"read": "true"},
+				Flag:         ErrorFlagNone,
 			},
 			{
-				Error:    errWriteError,
-				Metadata: ErrorMetadata{"write": "true"},
-				Flag:     ErrorFlagNone,
+				WrappedError: errWriteError,
+				Metadata:     ErrorMetadata{"write": "true"},
+				Flag:         ErrorFlagNone,
 			},
 		}
 
@@ -222,14 +238,14 @@ func TestSimpleReport_FirstError(t *testing.T) {
 	t.Run("should return first element from report", func(t *testing.T) {
 		elements := []ReportError{
 			{
-				Error:    errReadError,
-				Metadata: ErrorMetadata{"read": "true"},
-				Flag:     ErrorFlagNone,
+				WrappedError: errReadError,
+				Metadata:     ErrorMetadata{"read": "true"},
+				Flag:         ErrorFlagNone,
 			},
 			{
-				Error:    errWriteError,
-				Metadata: ErrorMetadata{"write": "true"},
-				Flag:     ErrorFlagNone,
+				WrappedError: errWriteError,
+				Metadata:     ErrorMetadata{"write": "true"},
+				Flag:         ErrorFlagNone,
 			},
 		}
 
@@ -254,14 +270,14 @@ func TestSimpleReport_LastError(t *testing.T) {
 	t.Run("should return last element from report", func(t *testing.T) {
 		elements := []ReportError{
 			{
-				Error:    errReadError,
-				Metadata: ErrorMetadata{"read": "true"},
-				Flag:     ErrorFlagNone,
+				WrappedError: errReadError,
+				Metadata:     ErrorMetadata{"read": "true"},
+				Flag:         ErrorFlagNone,
 			},
 			{
-				Error:    errWriteError,
-				Metadata: ErrorMetadata{"write": "true"},
-				Flag:     ErrorFlagNone,
+				WrappedError: errWriteError,
+				Metadata:     ErrorMetadata{"write": "true"},
+				Flag:         ErrorFlagNone,
 			},
 		}
 
@@ -284,9 +300,9 @@ func TestSimpleReport_FilterErrorsByFlag(t *testing.T) {
 	t.Run("should return empty report when there are no errors with this flag", func(t *testing.T) {
 		report.elements = []ReportError{
 			{
-				Error:    errWriteError,
-				Metadata: nil,
-				Flag:     flagWriteError,
+				WrappedError: errWriteError,
+				Metadata:     nil,
+				Flag:         flagWriteError,
 			},
 		}
 
@@ -296,15 +312,15 @@ func TestSimpleReport_FilterErrorsByFlag(t *testing.T) {
 
 	t.Run("should return a report containing only the errors filtered by flag without fatal error having another flag", func(t *testing.T) {
 		readError := ReportError{
-			Error:    errReadError,
-			Metadata: nil,
-			Flag:     flagReadError,
+			WrappedError: errReadError,
+			Metadata:     nil,
+			Flag:         flagReadError,
 		}
 
 		writeError := ReportError{
-			Error:    errWriteError,
-			Metadata: nil,
-			Flag:     flagWriteError,
+			WrappedError: errWriteError,
+			Metadata:     nil,
+			Flag:         flagWriteError,
 		}
 
 		report.elements = []ReportError{
@@ -320,15 +336,15 @@ func TestSimpleReport_FilterErrorsByFlag(t *testing.T) {
 
 	t.Run("should return a report containing only the errors filtered by flag including fatal error with same flag", func(t *testing.T) {
 		readError := ReportError{
-			Error:    errReadError,
-			Metadata: nil,
-			Flag:     flagReadError,
+			WrappedError: errReadError,
+			Metadata:     nil,
+			Flag:         flagReadError,
 		}
 
 		writeError := ReportError{
-			Error:    errWriteError,
-			Metadata: nil,
-			Flag:     flagWriteError,
+			WrappedError: errWriteError,
+			Metadata:     nil,
+			Flag:         flagWriteError,
 		}
 
 		report.elements = []ReportError{
@@ -354,9 +370,9 @@ func TestSimpleReport_FilterErrorsByFlags(t *testing.T) {
 	t.Run("should return empty report when there are no errors with provided flags", func(t *testing.T) {
 		report.elements = []ReportError{
 			{
-				Error:    errIOError,
-				Metadata: nil,
-				Flag:     flagIOError,
+				WrappedError: errIOError,
+				Metadata:     nil,
+				Flag:         flagIOError,
 			},
 		}
 
@@ -366,21 +382,21 @@ func TestSimpleReport_FilterErrorsByFlags(t *testing.T) {
 
 	t.Run("should return a report containing only the errors filtered by flags without fatal error having another flag", func(t *testing.T) {
 		readError := ReportError{
-			Error:    errReadError,
-			Metadata: nil,
-			Flag:     flagReadError,
+			WrappedError: errReadError,
+			Metadata:     nil,
+			Flag:         flagReadError,
 		}
 
 		writeError := ReportError{
-			Error:    errWriteError,
-			Metadata: nil,
-			Flag:     flagWriteError,
+			WrappedError: errWriteError,
+			Metadata:     nil,
+			Flag:         flagWriteError,
 		}
 
 		ioError := ReportError{
-			Error:    errIOError,
-			Metadata: nil,
-			Flag:     flagIOError,
+			WrappedError: errIOError,
+			Metadata:     nil,
+			Flag:         flagIOError,
 		}
 
 		report.elements = []ReportError{
@@ -395,21 +411,21 @@ func TestSimpleReport_FilterErrorsByFlags(t *testing.T) {
 
 	t.Run("should return a report containing only the errors filtered by flags including fatal error having one of the flags", func(t *testing.T) {
 		readError := ReportError{
-			Error:    errReadError,
-			Metadata: nil,
-			Flag:     flagReadError,
+			WrappedError: errReadError,
+			Metadata:     nil,
+			Flag:         flagReadError,
 		}
 
 		writeError := ReportError{
-			Error:    errWriteError,
-			Metadata: nil,
-			Flag:     flagWriteError,
+			WrappedError: errWriteError,
+			Metadata:     nil,
+			Flag:         flagWriteError,
 		}
 
 		ioError := ReportError{
-			Error:    errIOError,
-			Metadata: nil,
-			Flag:     flagIOError,
+			WrappedError: errIOError,
+			Metadata:     nil,
+			Flag:         flagIOError,
 		}
 
 		report.elements = []ReportError{
@@ -436,9 +452,9 @@ func TestSimpleReport_ExcludeErrorsByFlag(t *testing.T) {
 	t.Run("should return empty report when there only exist excluded errors", func(t *testing.T) {
 		report.elements = []ReportError{
 			{
-				Error:    errReadError,
-				Metadata: nil,
-				Flag:     flagReadError,
+				WrappedError: errReadError,
+				Metadata:     nil,
+				Flag:         flagReadError,
 			},
 		}
 
@@ -448,15 +464,15 @@ func TestSimpleReport_ExcludeErrorsByFlag(t *testing.T) {
 
 	t.Run("should only return errors in a new report which do not have the excluded flag", func(t *testing.T) {
 		writeError := ReportError{
-			Error:    errWriteError,
-			Metadata: nil,
-			Flag:     flagWriteError,
+			WrappedError: errWriteError,
+			Metadata:     nil,
+			Flag:         flagWriteError,
 		}
 
 		readError := ReportError{
-			Error:    errReadError,
-			Metadata: nil,
-			Flag:     flagReadError,
+			WrappedError: errReadError,
+			Metadata:     nil,
+			Flag:         flagReadError,
 		}
 
 		report.elements = []ReportError{
@@ -470,15 +486,15 @@ func TestSimpleReport_ExcludeErrorsByFlag(t *testing.T) {
 
 	t.Run("should only return errors in a new report which do not have the excluded flag including fatal error", func(t *testing.T) {
 		writeError := ReportError{
-			Error:    errWriteError,
-			Metadata: nil,
-			Flag:     flagWriteError,
+			WrappedError: errWriteError,
+			Metadata:     nil,
+			Flag:         flagWriteError,
 		}
 
 		readError := ReportError{
-			Error:    errReadError,
-			Metadata: nil,
-			Flag:     flagReadError,
+			WrappedError: errReadError,
+			Metadata:     nil,
+			Flag:         flagReadError,
 		}
 
 		report.elements = []ReportError{
@@ -504,14 +520,14 @@ func TestSimpleReport_ExcludeErrorsByFlags(t *testing.T) {
 	t.Run("should return empty report when there are only excluded items in report", func(t *testing.T) {
 		report.elements = []ReportError{
 			{
-				Error:    errReadError,
-				Metadata: nil,
-				Flag:     flagReadError,
+				WrappedError: errReadError,
+				Metadata:     nil,
+				Flag:         flagReadError,
 			},
 			{
-				Error:    errWriteError,
-				Metadata: nil,
-				Flag:     flagWriteError,
+				WrappedError: errWriteError,
+				Metadata:     nil,
+				Flag:         flagWriteError,
 			},
 		}
 
@@ -521,21 +537,21 @@ func TestSimpleReport_ExcludeErrorsByFlags(t *testing.T) {
 
 	t.Run("should return only items in new report which were not excluded by flag", func(t *testing.T) {
 		ioError := ReportError{
-			Error:    errIOError,
-			Metadata: nil,
-			Flag:     flagIOError,
+			WrappedError: errIOError,
+			Metadata:     nil,
+			Flag:         flagIOError,
 		}
 
 		readError := ReportError{
-			Error:    errReadError,
-			Metadata: nil,
-			Flag:     flagReadError,
+			WrappedError: errReadError,
+			Metadata:     nil,
+			Flag:         flagReadError,
 		}
 
 		writeError := ReportError{
-			Error:    errWriteError,
-			Metadata: nil,
-			Flag:     flagWriteError,
+			WrappedError: errWriteError,
+			Metadata:     nil,
+			Flag:         flagWriteError,
 		}
 
 		report.elements = []ReportError{
@@ -550,21 +566,21 @@ func TestSimpleReport_ExcludeErrorsByFlags(t *testing.T) {
 
 	t.Run("should return only items in new report which were not excluded by flag including fatal error", func(t *testing.T) {
 		ioError := ReportError{
-			Error:    errIOError,
-			Metadata: nil,
-			Flag:     flagIOError,
+			WrappedError: errIOError,
+			Metadata:     nil,
+			Flag:         flagIOError,
 		}
 
 		readError := ReportError{
-			Error:    errReadError,
-			Metadata: nil,
-			Flag:     flagReadError,
+			WrappedError: errReadError,
+			Metadata:     nil,
+			Flag:         flagReadError,
 		}
 
 		writeError := ReportError{
-			Error:    errWriteError,
-			Metadata: nil,
-			Flag:     flagWriteError,
+			WrappedError: errWriteError,
+			Metadata:     nil,
+			Flag:         flagWriteError,
 		}
 
 		report.elements = []ReportError{
@@ -590,9 +606,9 @@ func TestSimpleReport_FatalError(t *testing.T) {
 
 	t.Run("should return the fatal error when there exists one", func(t *testing.T) {
 		readFatalError := &ReportError{
-			Error:    errReadError,
-			Metadata: nil,
-			Flag:     flagReadError,
+			WrappedError: errReadError,
+			Metadata:     nil,
+			Flag:         flagReadError,
 		}
 
 		report.fatalError = readFatalError
@@ -613,14 +629,14 @@ func TestSimpleReport_ToErrorSlice(t *testing.T) {
 	t.Run("should return all errors as slice", func(t *testing.T) {
 		allErrorElements := []ReportError{
 			{
-				Error:    errReadError,
-				Metadata: nil,
-				Flag:     flagReadError,
+				WrappedError: errReadError,
+				Metadata:     nil,
+				Flag:         flagReadError,
 			},
 			{
-				Error:    errWriteError,
-				Metadata: nil,
-				Flag:     flagWriteError,
+				WrappedError: errWriteError,
+				Metadata:     nil,
+				Flag:         flagWriteError,
 			},
 		}
 
@@ -629,4 +645,15 @@ func TestSimpleReport_ToErrorSlice(t *testing.T) {
 		errorsAsSlice := report.ToErrorSlice()
 		assert.Equal(t, []error{errReadError, errWriteError}, errorsAsSlice)
 	})
+}
+
+func TestSimpleReport_Error(t *testing.T) {
+	report := SimpleReport{
+		elements: []ReportError{
+			elementRead,
+			elementWrite,
+		},
+	}
+
+	assert.Equal(t, "report contains 2 error(s)", report.Error())
 }

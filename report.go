@@ -1,5 +1,9 @@
 package yeterr
 
+import (
+	"fmt"
+)
+
 // Report is an interface for a data structure which can collect errors with metadata and flags.
 type Report interface {
 	IsEmpty() bool
@@ -19,13 +23,24 @@ type Report interface {
 	ExcludeErrorsByFlags(flags ...ErrorFlag) Report
 	FatalError() *ReportError
 	ToErrorSlice() []error
+	error
 }
 
 // ReportError is a specific item of an error report.
 type ReportError struct {
-	Error    error
-	Metadata ErrorMetadata
-	Flag     ErrorFlag
+	WrappedError error
+	Metadata     ErrorMetadata
+	Flag         ErrorFlag
+}
+
+// Error implements the error interface.
+func (r ReportError) Error() string {
+	return r.WrappedError.Error()
+}
+
+// Unwrap unwraps the wrapped error which can then be used for error handling.
+func (r ReportError) Unwrap() error {
+	return r.WrappedError
 }
 
 // SimpleReport is a simple implementation for a report.
@@ -77,9 +92,9 @@ func (s *SimpleReport) AddFatalError(err error, metadata ErrorMetadata) {
 // AddFlaggedError adds an error with a provided flag to the report.
 func (s *SimpleReport) AddFlaggedError(err error, metadata ErrorMetadata, flag ErrorFlag) {
 	element := ReportError{
-		Error:    err,
-		Metadata: metadata,
-		Flag:     flag,
+		WrappedError: err,
+		Metadata:     metadata,
+		Flag:         flag,
 	}
 
 	s.elements = append(s.elements, element)
@@ -95,9 +110,9 @@ func (s *SimpleReport) AddFlaggedFatalError(err error, metadata ErrorMetadata, f
 	}
 
 	s.fatalError = &ReportError{
-		Error:    err,
-		Metadata: metadata,
-		Flag:     flag,
+		WrappedError: err,
+		Metadata:     metadata,
+		Flag:         flag,
 	}
 }
 
@@ -248,8 +263,13 @@ func (s *SimpleReport) ToErrorSlice() []error {
 
 	var errSlice []error
 	for _, element := range s.elements {
-		errSlice = append(errSlice, element.Error)
+		errSlice = append(errSlice, element.Unwrap())
 	}
 
 	return errSlice
+}
+
+// Error implements the error interface.
+func (s *SimpleReport) Error() string {
+	return fmt.Sprintf("report contains %d error(s)", s.Count())
 }
