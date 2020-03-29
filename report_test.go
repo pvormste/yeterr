@@ -31,18 +31,18 @@ var (
 	}
 )
 
-func TestSimpleReport_IsEmpty_and_HasError(t *testing.T) {
+func TestSimpleReport_IsEmpty_and_HasErrors(t *testing.T) {
 	report := NewSimpleReport()
 
-	t.Run("should return true for IsEmpty() and false for HasError() when empty", func(t *testing.T) {
+	t.Run("should return true for IsEmpty() and false for HasErrors() when empty", func(t *testing.T) {
 		assert.True(t, report.IsEmpty())
-		assert.False(t, report.HasError())
+		assert.False(t, report.HasErrors())
 	})
 
-	t.Run("should return false for IsEmpty() and true for HasError() when not empty", func(t *testing.T) {
+	t.Run("should return false for IsEmpty() and true for HasErrors() when not empty", func(t *testing.T) {
 		report.(*SimpleReport).elements = append(report.(*SimpleReport).elements, elementRead)
 		assert.False(t, report.IsEmpty())
-		assert.True(t, report.HasError())
+		assert.True(t, report.HasErrors())
 	})
 }
 

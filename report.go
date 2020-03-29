@@ -3,7 +3,7 @@ package yeterr
 // Report is an interface for a data structure which can collect errors with metadata and flags.
 type Report interface {
 	IsEmpty() bool
-	HasError() bool
+	HasErrors() bool
 	HasFatalError() bool
 	Count() int
 	AddError(err error, metadata ErrorMetadata)
@@ -44,11 +44,11 @@ func NewSimpleReport() Report {
 
 // IsEmpty returns true if the report does not have any item.
 func (s *SimpleReport) IsEmpty() bool {
-	return !s.HasError()
+	return !s.HasErrors()
 }
 
-// HasError returns true if the report does have at least one item.
-func (s *SimpleReport) HasError() bool {
+// HasErrors returns true if the report does have at least one item.
+func (s *SimpleReport) HasErrors() bool {
 	return len(s.elements) > 0
 }
 
