@@ -3,11 +3,11 @@
 # yeterr
 
 yeterr is a package which provides helper functionalities for working with errors.
-At the current state it only adds a collection for collecting errors and filter them.
+At the current state it only adds a report for collecting errors and filter them.
 
 ## Collection
 
-The error collection allows it to collect errors and adding metadata and flags to them.
+The error report allows to collect errors and adding metadata and flags to them.
 
 ```go
 const (
@@ -16,14 +16,14 @@ const (
 )
 
 func example() {
-    collection := yeterr.NewErrorCollection()
-    collection.AddError(errors.New("not flagged"), nil)
-    collection.AddFlaggedError(errors.New("warning"), yeterr.Metadata{"time", time.Now().String()}, flagWarning)
-    collection.AddFlaggedError(errors.New("serious"), yeterr.Metadata{"time": time.Now().String()}, flagSerious)
-    collection.AddFlaggedFatalError(errors.New("really serious"), nil, flagSerious)
+    report := yeterr.NewSimpleReport()
+    report.AddError(errors.New("not flagged"), nil)
+    report.AddFlaggedError(errors.New("warning"), yeterr.Metadata{"time", time.Now().String()}, flagWarning)
+    report.AddFlaggedError(errors.New("serious"), yeterr.Metadata{"time": time.Now().String()}, flagSerious)
+    report.AddFlaggedFatalError(errors.New("really serious"), nil, flagSerious)
 
-    seriousErrors := collection.FilterErrorsByFlag(flagSerious) // 2 items
-    fatalSeriousError := collection.FatalError() // returns the "really serious" error
+    seriousErrors := report.FilterErrorsByFlag(flagSerious) // 2 items
+    fatalSeriousError := report.FatalError() // returns the "really serious" error
 }
 ```
 
